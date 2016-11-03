@@ -1,0 +1,275 @@
+﻿<Window x:Class="AutoSpecification.SpecificationForm"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:AutoSpecification"
+             xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
+             xmlns:System="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d" 
+             d:DesignHeight="350" d:DesignWidth="800"
+             MaxHeight="1080"
+             SizeToContent="WidthAndHeight" 
+             DataContext="{Binding RelativeSource = {RelativeSource Self}}"
+        SizeChanged="Window_SizeChanged"
+             >
+    <Window.Resources>
+        <ResourceDictionary Source="Resources/Dictionary.xaml">
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary>
+                    <ObjectDataProvider x:Key="AssemblyEnumDataProvider" 
+                            MethodName="GetValues" 
+                            ObjectType="{x:Type System:Enum}">
+                        <ObjectDataProvider.MethodParameters>
+                            <x:Type TypeName="local:AssemblyTypes"/>
+                        </ObjectDataProvider.MethodParameters>
+                    </ObjectDataProvider>
+                    <ObjectDataProvider x:Key="CasingEnumDataProvider" 
+                            MethodName="GetValues" 
+                            ObjectType="{x:Type System:Enum}">
+                        <ObjectDataProvider.MethodParameters>
+                            <x:Type TypeName="local:CasingTypes"/>
+                        </ObjectDataProvider.MethodParameters>
+                    </ObjectDataProvider>
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Label  Grid.Row="0"
+            FontSize="16" 
+			Height="35"  
+			VerticalAlignment="Top" 
+			Background="#FF5AA082" 
+			Foreground="#FFF0FFFA" 
+			Margin="0" Content="Создание спецификаций" HorizontalContentAlignment="Center" BorderBrush="#FF5AA082"/>
+        <Border BorderThickness="0,0,0,1" Grid.Column="0" Grid.Row="1" BorderBrush="#FF5AA082">
+            <DockPanel  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <StackPanel Margin="10,10" >
+                    <Label Content="_Обозначение агрегата:" Target="{Binding ElementName=PartNumber_textBox, Mode=OneWay}"
+                           DataContext="{Binding Path=mainComponent}"
+                           />
+                    <TextBox x:Name="PartNumber_textBox"  MinWidth="150"
+                             DataContext="{Binding Path=mainComponent}">
+                        <TextBox.Text>
+                            <Binding Path="PartNumber" 
+                             >
+                            </Binding>
+                        </TextBox.Text>
+                    </TextBox>
+                </StackPanel>
+                <StackPanel Margin="10,10" >
+                    <Label Content="_Наименование агрегата:" Target="{Binding ElementName=Description_textBox}"/>
+                    <TextBox x:Name="Description_textBox"  MinWidth="200"
+                             DataContext="{Binding Path=mainComponent}">
+                        <TextBox.Text>
+                            <Binding Path="Description" 
+                            >
+                            </Binding>
+                        </TextBox.Text>
+                    </TextBox>
+                </StackPanel>
+                <StackPanel Margin="10,10" >
+                    <Label Content="_Заводской номер:" Target="{Binding ElementName=FactoryNumber_textBox}"/>
+                    <TextBox x:Name="FactoryNumber_textBox"  MinWidth="150"
+                             DataContext="{Binding Path=mainComponent,diag:PresentationTraceSources.TraceLevel=High}">
+                        <TextBox.Text>
+                            <Binding Path="FactoryNumber" 
+                            >
+                            </Binding>
+                        </TextBox.Text>
+                    </TextBox>
+                </StackPanel>
+                <Button x:Name="WriteProperties_button" Click="WriteProperties_button_Click" 
+                                Margin="10,10,10,10" Height="40" Width="100" HorizontalAlignment="Right"
+                                Style="{DynamicResource BoringButtonStyle}" 
+                                VerticalAlignment="Bottom">
+                    <TextBlock TextWrapping="Wrap">Записать <LineBreak/>в модели</TextBlock>
+                </Button>
+            </DockPanel>
+        </Border>
+
+        <Border BorderThickness="0,0,0,1" Grid.Column="0" Grid.Row="2" BorderBrush="#FF5AA082">
+            <DockPanel  HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <StackPanel Margin="10,10" >
+                    <Label Content="_Разработал:" Target="{Binding ElementName=Author_textBox}"
+                           DataContext="{Binding Path=specification}"
+                           />
+                    <TextBox x:Name="Author_textBox"  MinWidth="150"
+                             DataContext="{Binding Path=specification}">
+                        <TextBox.Text>
+                            <Binding Path="Author" 
+                             >
+                            </Binding>
+                        </TextBox.Text>
+                    </TextBox>
+                </StackPanel>
+                <StackPanel Margin="10,10" >
+                    <Label Content="_Проверил:" Target="{Binding ElementName=Description_textBox}"/>
+                    <TextBox x:Name="CheckedBy_textBox"  MinWidth="200"
+                             DataContext="{Binding Path=specification,diag:PresentationTraceSources.TraceLevel=High}">
+                        <TextBox.Text>
+                            <Binding Path="CheckedBy" diag:PresentationTraceSources.TraceLevel="High"
+                            >
+                            </Binding>
+                        </TextBox.Text>
+                    </TextBox>
+                </StackPanel>
+                <StackPanel Margin="10,10" >
+                    <Label Content="_Количество агрегатов:" Target="{Binding ElementName=Quantity_textBox}"/>
+                    <TextBox x:Name="Quantity_textBox"  MinWidth="150"
+                             DataContext="{Binding Path=specification,diag:PresentationTraceSources.TraceLevel=High}">
+                        <TextBox.Text>
+                            <Binding Path="Quantity" 
+                            >
+                            </Binding>
+                        </TextBox.Text>
+                    </TextBox>
+                </StackPanel>
+                
+            </DockPanel>
+        </Border>
+        <TabControl Grid.Column="0" Grid.Row="3" HorizontalAlignment="Stretch" Height="auto" VerticalAlignment="Stretch" Width="auto"
+                    Margin="0,20,0,0"
+                    >
+            <TabItem Header="Агрегат">
+                <Grid Margin="10"
+                      >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <DataGrid x:Name="DataGridMain" Grid.Column="0" Grid.Row="0"
+                    CanUserAddRows="False" CanUserDeleteRows="False"
+                    AutoGenerateColumns="False"
+                    SelectionUnit="Cell"
+                    DataContext="{Binding Path=mainComponent}"
+                    ItemsSource="{Binding Path=Components}"
+                    SizeChanged="DataGridMain_SizeChanged"
+                              Loaded="DataGridMain_Loaded"
+                    >
+                        <DataGrid.Columns>
+                            <DataGridComboBoxColumn Header="" 
+                                                    SelectedItemBinding="{Binding Path=AssemblyType}"
+                                                    ItemsSource="{Binding Source={StaticResource AssemblyEnumDataProvider}}"
+                                                    >
+                                <DataGridComboBoxColumn.EditingElementStyle>
+                                    <Style TargetType="{x:Type ComboBox}">
+                                        <EventSetter Event="SelectionChanged" Handler="AssemblyType_SelectionChanged" />
+                                    </Style>
+                                </DataGridComboBoxColumn.EditingElementStyle>
+                            </DataGridComboBoxColumn>
+                            <DataGridTextColumn Header="Обозначение" Binding="{Binding Path=PartNumber}" 
+                                                IsReadOnly="True"
+                                                />
+                            <DataGridTextColumn Header="Наименование" Binding="{Binding Path=Description}" 
+                                                IsReadOnly="True"
+                                                />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" >
+                        <Button x:Name="AllSpecifications_button" Click="AllSpecifications_button_Click" 
+                                Margin="-10,10,0,0" Height="40" Width="100" HorizontalAlignment="Right"
+                                Style="{DynamicResource BoringButtonStyle}" 
+                                Content="Создать все СП" VerticalAlignment="Bottom"/>
+                        <Button x:Name="Specification_button" Click="Specification_button_Click" 
+                                Margin="10,10,0,0" Height="40" Width="100" HorizontalAlignment="Right"
+                                Style="{DynamicResource BoringButtonStyle}" 
+                                Content="СП" VerticalAlignment="Bottom"/>
+                        <Button x:Name="TM_button" Click="TM_button_Click" 
+                                Margin="10,10,0,0" Height="40" Width="100" HorizontalAlignment="Right"
+                                Style="{DynamicResource BoringButtonStyle}" 
+                                Content="СП ТМ" VerticalAlignment="Bottom"/>
+                        <Button x:Name="TS_button" Click="TS_button_Click" 
+                                Margin="10,10,0,0" Height="40" Width="100" HorizontalAlignment="Right"
+                                Style="{DynamicResource BoringButtonStyle}" 
+                                Content="СП ТС" VerticalAlignment="Bottom"/>
+                        <Button x:Name="TP_button" Click="TP_button_Click" 
+                                Margin="10,10,0,0" Height="40" Width="100" HorizontalAlignment="Right"
+                                Style="{DynamicResource BoringButtonStyle}" 
+                                Content="СП ТП" VerticalAlignment="Bottom"/>
+                        <Button x:Name="CasingSP_button" Click="CasingSP_button_Click" 
+                                Margin="10,10,0,0" Height="40" Width="100" HorizontalAlignment="Right"
+                                Style="{DynamicResource BoringButtonStyle}" 
+                                Content="СП Корпус" VerticalAlignment="Bottom"/>
+                        <Button IsCancel="True"  x:Name="Cancel_button1" Click="Cancel_button_Click" 
+                                Margin="10,10,0,0" Height="40" Width="100" HorizontalAlignment="Right"
+                                Style="{DynamicResource BoringButtonStyle}" 
+                                Content="Отмена" VerticalAlignment="Bottom"/>
+ 
+                    </StackPanel>
+
+                </Grid>
+            </TabItem>
+            <TabItem Header="Корпус" Margin="1,0,-5,-3">
+                <Grid Margin="10"
+                      >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <DataGrid x:Name="Casing_dataGrid" Grid.Column="0" Grid.Row="0"
+                    CanUserAddRows="False" CanUserDeleteRows="False"
+                    AutoGenerateColumns="False"
+                    SelectionUnit="Cell"
+                    DataContext="{Binding Path=casingComponent}"
+                    ItemsSource="{Binding Path=Components}"
+                    SizeChanged="Casing_dataGrid_SizeChanged"
+                    Loaded="Casing_dataGrid_Loaded"          
+                    >
+                        <DataGrid.Columns>
+                            <DataGridComboBoxColumn Header="" 
+                                                    SelectedItemBinding="{Binding Path=CasingType}"
+                                                    ItemsSource="{Binding Source={StaticResource CasingEnumDataProvider}}"
+                                                    >
+                                <DataGridComboBoxColumn.EditingElementStyle>
+                                    <Style TargetType="{x:Type ComboBox}">
+                                        <EventSetter Event="SelectionChanged" Handler="AssemblyType_SelectionChanged" />
+                                    </Style>
+                                </DataGridComboBoxColumn.EditingElementStyle>
+                            </DataGridComboBoxColumn>
+                            <DataGridTextColumn Header="Обозначение" Binding="{Binding Path=PartNumber}" IsReadOnly="True"
+                                                />
+                            <DataGridTextColumn Header="Наименование" Binding="{Binding Path=Description}" IsReadOnly="True"
+                                                />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" >
+                        <Button x:Name="ReplaceReference_button" Click="ReplaceReference_button_Click" 
+                                Margin="-10,10,0,0" Height="40" Width="100" HorizontalAlignment="Right"
+                                Style="{DynamicResource BoringButtonStyle}" 
+                                Content="Замена ссылок" VerticalAlignment="Bottom">
+                        </Button>
+
+
+                        <Button x:Name="OrderList_button" Click="OrderList_button_Click" 
+                                Margin="10,10,0,0" Height="40" Width="100" HorizontalAlignment="Right"
+                                Style="{DynamicResource BoringButtonStyle}" 
+                                Content="Бланк заказа" VerticalAlignment="Bottom"/>
+                        <Button x:Name="FrameSP_button" Click="FrameSP_button_Click" 
+                                Margin="10,10,0,0" Height="40" Width="100" HorizontalAlignment="Right"
+                                Style="{DynamicResource BoringButtonStyle}" 
+                                Content="СП Рама" VerticalAlignment="Bottom"/>
+                        <Button x:Name="CuttingList_button" Click="CuttingList_button_Click" 
+                                Margin="10,10,0,0" Height="40" Width="100" HorizontalAlignment="Right"
+                                Style="{DynamicResource BoringButtonStyle}" 
+                                Content="Лист нарезки" VerticalAlignment="Bottom"/>
+                        <Button IsCancel="True"  x:Name="Cancel_button2" Click="Cancel_button_Click" 
+                                Margin="10,10,0,0" Height="40" Width="100" HorizontalAlignment="Right"
+                                Style="{DynamicResource BoringButtonStyle}" 
+                                Content="Отмена" VerticalAlignment="Bottom"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+    </Grid>
+</Window>

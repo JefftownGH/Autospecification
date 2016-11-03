@@ -1,0 +1,18 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="AutoSpecification.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="InventorLibraryPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">d:\Шаталов\Тестовый архив\2017 Библиотека компонентов INVENTOR 2016\</Value>
+    </Setting>
+    <Setting Name="InventorAlbumPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)">d:\Шаталов\Тестовый архив\Альбом конструктивных решений INVENTOR\</Value>
+    </Setting>
+    <Setting Name="Author" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="CheckedBy" Type="System.String" Scope="User">
+      <Value Profile="(Default)">1111</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

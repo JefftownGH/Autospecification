@@ -1,0 +1,16 @@
+C:\Users\Shatalov\AppData\Roaming\Autodesk\Inventor 2017\Addins\AutoSpecification\AutoSpecification.dll.config
+C:\Users\Shatalov\AppData\Roaming\Autodesk\Inventor 2017\Addins\AutoSpecification\AutoSpecification.dll
+C:\Users\Shatalov\AppData\Roaming\Autodesk\Inventor 2017\Addins\AutoSpecification\AutoSpecification.pdb
+D:\Dropbox\Projects\AutoSpecification\obj\Debug\AutoSpecification.Properties.Resources.resources
+D:\Dropbox\Projects\AutoSpecification\obj\Debug\AutoSpecification.csproj.GenerateResource.Cache
+D:\Dropbox\Projects\AutoSpecification\obj\Debug\AutoSpecification.dll
+D:\Dropbox\Projects\AutoSpecification\obj\Debug\AutoSpecification.pdb
+D:\Dropbox\Projects\AutoSpecification\obj\Debug\SpecificationForm.g.cs
+D:\Dropbox\Projects\AutoSpecification\obj\Debug\AutoSpecification_MarkupCompile.cache
+D:\Dropbox\Projects\AutoSpecification\obj\Debug\AutoSpecification_MarkupCompile.lref
+D:\Dropbox\Projects\AutoSpecification\obj\Debug\SpecificationForm.baml
+D:\Dropbox\Projects\AutoSpecification\obj\Debug\AutoSpecification.g.resources
+D:\Dropbox\Projects\AutoSpecification\obj\Debug\AutoSpecification.csprojResolveAssemblyReference.cache
+D:\Dropbox\Projects\AutoSpecification\obj\Debug\Interop.Office.dll
+D:\Dropbox\Projects\AutoSpecification\obj\Debug\AutoSpecification.csproj.ResolveComReference.cache
+D:\Dropbox\Projects\AutoSpecification\obj\Debug\Interop.Shell32.dll

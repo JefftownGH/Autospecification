@@ -1,0 +1,14 @@
+<Addin Type="Standard">
+  <!--Created for Autodesk Inventor Version 18.0-->
+  <ClassId>{479138eb-d875-4658-90b1-666e5c09631e}</ClassId>
+  <ClientId>{479138eb-d875-4658-90b1-666e5c09631e}</ClientId>
+  <DisplayName>AutoSpecification</DisplayName>
+  <Description>AutoSpecification</Description>
+  <Assembly>AutoSpecification.dll</Assembly>
+  <LoadOnStartUp>1</LoadOnStartUp>
+  <UserUnloadable>1</UserUnloadable>
+  <Hidden>0</Hidden>
+  <SupportedSoftwareVersionGreaterThan>17..</SupportedSoftwareVersionGreaterThan>
+  <DataVersion>1</DataVersion>
+  <UserInterfaceVersion>1</UserInterfaceVersion>
+</Addin>
