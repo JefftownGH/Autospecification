@@ -16,6 +16,7 @@ using Inventor;
 using File = System.IO.File;
 using Path = System.IO.Path;
 using Directory = System.IO.Directory;
+using Library = InventorPlugins.OftenLibrary;
 
 namespace AutoSpecification
 {
@@ -81,7 +82,10 @@ namespace AutoSpecification
 				component.PartNumber = oPropSet["Part Number"].Value.ToString();
 				component.Description = oPropSet["Description"].Value.ToString();
 				oPropSet = assembly.PropertySets["Inventor User Defined Properties"];
-				component.FactoryNumber = oPropSet["Заводской номер"].Value.ToString();
+				if (Library.HasInventorProperty(oPropSet,"Заводской номер"))
+				{
+					component.FactoryNumber = oPropSet["Заводской номер"].Value.ToString();
+				}
 				component.ComponentType = ComponentTypes.Assembly;
 				// Define assembly type				
 				string fileName = Path.GetFileName(component.FullFileName);
@@ -117,7 +121,7 @@ namespace AutoSpecification
 		{
 			try
 			{
-				casingAssembly = (AssemblyDocument)inventorApp.Documents.Open(casingComponent.FullFileName,false);
+				casingAssembly = (AssemblyDocument)inventorApp.Documents.Open(casingComponent.FullFileName, false);
 				foreach (ComponentOccurrence occurrence in casingAssembly.ComponentDefinition.Occurrences)
 				{
 					AddCasingComponentRecursive(occurrence, casingComponent);
@@ -283,8 +287,8 @@ namespace AutoSpecification
 
 		private void ReplaceReference_button_Click(object sender, RoutedEventArgs e)
 		{
-			ReplaceReferences replaceReferences = new ReplaceReferences(inventorApp, 
-																		casingAssembly, 
+			ReplaceReferences replaceReferences = new ReplaceReferences(inventorApp,
+																		casingAssembly,
 																		casingComponent,
 																		projectDirectory);
 			replaceReferences = null;
@@ -315,7 +319,7 @@ namespace AutoSpecification
 		{
 
 		}
-		#endregion 
+		#endregion
 
 
 
