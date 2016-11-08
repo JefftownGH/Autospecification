@@ -24,12 +24,7 @@ namespace AutoSpecification
 	public partial class SpecificationForm : Window
 	{
 		// Properties
-		private string projectDirectory { get; set; }
 		private Inventor.Application inventorApp;
-		private AssemblyDocument mainAssembly;
-		private AssemblyDocument casingAssembly;
-		public Component mainComponent { get; set; }
-		public Component casingComponent { get; set; }
 		public Specification specification { get; set; }
 		//private bool isFirstTimeMain = true;
 		//private bool isFirstTimeCasing = true;
@@ -37,167 +32,21 @@ namespace AutoSpecification
 		public SpecificationForm(Inventor.Application ThisApplication, Component inputComponent)
 		{
 			inventorApp = ThisApplication;
-			projectDirectory = System.IO.Path.GetDirectoryName(inventorApp.DesignProjectManager.ActiveDesignProject.FullFileName);
-			mainComponent = inputComponent;
-			// Search for components
-			mainAssembly = (AssemblyDocument)inventorApp.Documents.Open(mainComponent.FullFileName);
-			specification = new Specification(inventorApp, mainComponent);
+			specification = new Specification(inventorApp, inputComponent);
 			specification.Author = Properties.Settings.Default.Author;
 			specification.CheckedBy = Properties.Settings.Default.CheckedBy;
-			SearchComponents();
 			InitializeComponent();
 			//DataGridMain.DataContext = mainComponent.Components;
 		}
 
-		// Methods
-		private void SearchComponents()
-		{
-			try
-			{
-				foreach (ComponentOccurrence occurrence in mainAssembly.ComponentDefinition.Occurrences)
-				{
-					if (occurrence.DefinitionDocumentType == DocumentTypeEnum.kAssemblyDocumentObject)
-					{
-						AssemblyDocument assembly = (AssemblyDocument)occurrence.Definition.Document;
-						Component component = GetAssemblyComponent(assembly);
-						mainComponent.Components.Add(component);
-					}
-				}
-
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, MessageBoxButton.OK);
-			}
-		}
-
-		private Component GetAssemblyComponent(AssemblyDocument assembly)
-		{
-			try
-			{
-				Component component = new Component();
-				// Get file info
-				component.FullFileName = assembly.FullFileName;
-				PropertySet oPropSet = assembly.PropertySets["Design Tracking Properties"];
-				component.PartNumber = oPropSet["Part Number"].Value.ToString();
-				component.Description = oPropSet["Description"].Value.ToString();
-				oPropSet = assembly.PropertySets["Inventor User Defined Properties"];
-				if (Library.HasInventorProperty(oPropSet,"Заводской номер"))
-				{
-					component.FactoryNumber = oPropSet["Заводской номер"].Value.ToString();
-				}
-				component.ComponentType = ComponentTypes.Assembly;
-				// Define assembly type				
-				string fileName = Path.GetFileName(component.FullFileName);
-				component.AssemblyType = AssemblyTypes.Common;
-				if (fileName.IndexOf("Корпус") >= 0)
-				{
-					component.AssemblyType = AssemblyTypes.Casing;
-					casingComponent = component;
-					SearchCasingComponents();
-				}
-				if (fileName.IndexOf("Трубы медь") >= 0)
-				{
-					component.AssemblyType = AssemblyTypes.ТМ;
-				}
-				if (fileName.IndexOf("Трубы сталь") >= 0)
-				{
-					component.AssemblyType = AssemblyTypes.ТС;
-				}
-				if (fileName.IndexOf("Трубы пластик") >= 0)
-				{
-					component.AssemblyType = AssemblyTypes.ТП;
-				}
-				return component;
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, MessageBoxButton.OK);
-				return null;
-			}
-		}
-
-		private void SearchCasingComponents()
-		{
-			try
-			{
-				casingAssembly = (AssemblyDocument)inventorApp.Documents.Open(casingComponent.FullFileName, false);
-				foreach (ComponentOccurrence occurrence in casingAssembly.ComponentDefinition.Occurrences)
-				{
-					AddCasingComponentRecursive(occurrence, casingComponent);
-				}
-
-				casingAssembly.Close();
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, MessageBoxButton.OK);
-			}
-		}
-
-		private void AddCasingComponentRecursive(ComponentOccurrence occurrence, Component component)
-		{
-			try
-			{
-				if (occurrence.DefinitionDocumentType == DocumentTypeEnum.kAssemblyDocumentObject)
-				{
-					AssemblyDocument assembly = (AssemblyDocument)occurrence.Definition.Document;
-					Component subComponent = GetCasingComponent(assembly);
-					component.Components.Add(subComponent);
-					// Recursive call
-					//foreach (ComponentOccurrence subOccurrence in assembly.ComponentDefinition.Occurrences)
-					//{
-					//	AddCasingComponentRecursive(subOccurrence, subComponent);
-					//}
-				}
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, MessageBoxButton.OK);
-			}
-		}
-
-		private Component GetCasingComponent(AssemblyDocument assembly)
-		{
-			try
-			{
-				Component component = new Component();
-				// Get file info
-				component.FullFileName = assembly.FullFileName;
-				PropertySet oPropSet = assembly.PropertySets["Design Tracking Properties"];
-				component.PartNumber = oPropSet["Part Number"].Value.ToString();
-				component.Description = oPropSet["Description"].Value.ToString();
-				oPropSet = assembly.PropertySets["Inventor User Defined Properties"];
-				component.FactoryNumber = oPropSet["Заводской номер"].Value.ToString();
-				component.ComponentType = ComponentTypes.Assembly;
-				// Define assembly type				
-				string fileName = Path.GetFileName(component.FullFileName);
-				component.CasingType = CasingTypes.Common;
-				if (fileName.IndexOf("Комплект ЛСП") >= 0)
-				{
-					component.CasingType = CasingTypes.ЛСП;
-				}
-				if (fileName.IndexOf("Рама") >= 0)
-				{
-					component.CasingType = CasingTypes.Frame;
-				}
-				return component;
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, MessageBoxButton.OK);
-				return null;
-			}
-		}
 
 		// Events
 		private void AssemblyType_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
 			var comboBox = sender as ComboBox;
 			var selectedItem = this.DataGridMain.CurrentItem;
-
+			specification.CheckCasing();
 		}
-
 
 		private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
 		{
@@ -250,7 +99,7 @@ namespace AutoSpecification
 		// WriteProperties
 		private void WriteProperties_button_Click(object sender, RoutedEventArgs e)
 		{
-			WriteProperties writeProperties = new WriteProperties(inventorApp, mainAssembly, mainComponent, projectDirectory);
+			WriteProperties writeProperties = new WriteProperties(inventorApp, specification.MainComponent, specification.projectDirectory);
 			writeProperties = null;
 		}
 
@@ -288,9 +137,8 @@ namespace AutoSpecification
 		private void ReplaceReference_button_Click(object sender, RoutedEventArgs e)
 		{
 			ReplaceReferences replaceReferences = new ReplaceReferences(inventorApp,
-																		casingAssembly,
-																		casingComponent,
-																		projectDirectory);
+																		specification.CasingComponent,
+																		specification.projectDirectory);
 			replaceReferences = null;
 		}
 
@@ -320,14 +168,6 @@ namespace AutoSpecification
 
 		}
 		#endregion
-
-
-
-
-
-
-
-
 
 	}
 }

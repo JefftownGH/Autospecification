@@ -11,18 +11,17 @@ namespace AutoSpecification
 {
 	class Preloading
 	{
-
 		// Properties
 		private Inventor.Application inventorApp;
 		private Document oDoc;
-		private Component mainComponent = new Component();
+		private Component mainComponent;
 		// Constructors
 		public Preloading(Inventor.Application ThisApplication)
 		{
 			inventorApp = ThisApplication;
 			// Get active document
 			oDoc = inventorApp.ActiveDocument;
-
+			mainComponent = new Component(inventorApp);
 			// Check whether the Document is assembly
 			if (oDoc.DocumentType == DocumentTypeEnum.kAssemblyDocumentObject)
 			{
@@ -40,7 +39,6 @@ namespace AutoSpecification
 			{
 				MessageBox.Show("Откройте 3d-модель компонента", System.Reflection.MethodBase.GetCurrentMethod().Name, MessageBoxButton.OK);
 			}
-
 			//oDoc.Save2();
 			//oDoc.Close();
 			//oDoc = null;
@@ -59,13 +57,13 @@ namespace AutoSpecification
 				mainComponent.Description = oPropSet["Description"].Value.ToString();
 				oPropSet = oDoc.PropertySets["Inventor User Defined Properties"];
 				mainComponent.FactoryNumber = oPropSet["Заводской номер"].Value.ToString();
-				// Get quantity of units
-				string propertyName = "Количество агрегатов";
-				if (!Library.HasInventorProperty(oPropSet,propertyName))
-				{
-					Library.ChangeInventorProperty(oPropSet, propertyName, "1");
-				}
-				mainComponent.Quantity = oPropSet[propertyName].Value.ToString();
+				//// Get quantity of units
+				//string propertyName = "Количество агрегатов";
+				//if (!Library.HasInventorProperty(oPropSet,propertyName))
+				//{
+				//	Library.ChangeInventorProperty(oPropSet, propertyName, "1");
+				//}
+				//mainComponent.Quantity = oPropSet[propertyName].Value.ToString();
 				mainComponent.AssemblyType = AssemblyTypes.Common;
 				mainComponent.ComponentType = ComponentTypes.Assembly;
 

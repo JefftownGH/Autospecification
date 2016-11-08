@@ -25,7 +25,7 @@ namespace AutoSpecification.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("d:\\Шаталов\\Тестовый архив\\2017 Библиотека компонентов INVENTOR 2016\\")]
+        [global::System.Configuration.DefaultSettingValueAttribute("m:\\KB\\Библиотека компонентов INVENTOR 2016\\")]
         public string InventorLibraryPath {
             get {
                 return ((string)(this["InventorLibraryPath"]));
@@ -37,7 +37,7 @@ namespace AutoSpecification.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("d:\\Шаталов\\Тестовый архив\\Альбом конструктивных решений INVENTOR\\")]
+        [global::System.Configuration.DefaultSettingValueAttribute("m:\\KB\\Альбом конструктивных решений INVENTOR\\")]
         public string InventorAlbumPath {
             get {
                 return ((string)(this["InventorAlbumPath"]));

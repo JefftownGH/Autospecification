@@ -33,15 +33,13 @@ namespace AutoSpecification
 		List<Component> assembliesToReplace = new List<Component>();
 
 		// Constructors
-		public ReplaceReferences(Inventor.Application ThisApplication, 
-								AssemblyDocument inputAssembly, 
+		public ReplaceReferences(Inventor.Application ThisApplication,
 								Component inputComponent,
 								string inputDirectory)
 		{
-
 			inventorApp = ThisApplication;
-			casingAssembly = inputAssembly;
 			casingComponent = inputComponent;
+			casingAssembly = (AssemblyDocument)inventorApp.Documents.Open(casingComponent.FullFileName, false); ;
 			projectDirectory = inputDirectory;
 			try
 			{
@@ -113,7 +111,7 @@ namespace AutoSpecification
 			mainComponent = inputComponent;
 			try
 			{
-				List<Component> mainComponents =  GetMainComponents();
+				List<Component> mainComponents = GetMainComponents();
 
 				if (mainComponents.Count > 0)
 				{
@@ -149,6 +147,12 @@ namespace AutoSpecification
 								ChangePartNumber(subComponent, "F");
 								component.Level = 2;
 								mainComponents.Add(subComponent);
+							}
+							if (subComponent.CasingType == CasingTypes.ЛСП)
+							{
+								ChangePartNumber(subComponent, "ЛСП");
+								component.Level = 2;
+								//mainComponents.Add(subComponent);
 							}
 						}
 					}
@@ -191,8 +195,26 @@ namespace AutoSpecification
 				Document locDoc = (Document)inventorApp.Documents.Open(component.FullFileName, false);
 				// Set properties of main assembly
 				PropertySet oPropSet = locDoc.PropertySets["Design Tracking Properties"];
-				component.PartNumber = add + " " + mainComponent.FactoryNumber;
-				oPropSet["Part Number"].Value = component.PartNumber;
+				// Eliminate tail of factorynumbers
+				int defisIndex = mainComponent.FactoryNumber.ToString().IndexOf("-");
+				string factoryNumberClean;
+				if (defisIndex > 0)
+				{
+					factoryNumberClean = mainComponent.FactoryNumber.ToString().Substring(0, defisIndex);
+				}
+				else
+				{
+					factoryNumberClean = mainComponent.FactoryNumber.ToString();
+				}
+
+				component.PartNumber = add + " " + factoryNumberClean;
+				if (add != "ЛСП")
+				{
+					oPropSet["Part Number"].Value = component.PartNumber;
+				}
+				// Change type of assembly
+				oPropSet = locDoc.PropertySets["Inventor User Defined Properties"];
+				Library.ChangeInventorProperty(oPropSet, "Тип сборки", add);
 				locDoc.Close();
 			}
 			catch (Exception ex)
@@ -283,7 +305,7 @@ namespace AutoSpecification
 		{
 			try
 			{
-				Component component = new Component();
+				Component component = new Component(inventorApp);
 				// Get file info
 				component.FullFileName = document.FullFileName;
 				PropertySet oPropSet = document.PropertySets["Design Tracking Properties"];
@@ -454,13 +476,13 @@ namespace AutoSpecification
 							else if (componentDefinition is PartComponentDefinition)
 							{
 								bool needToAdd = false;
-								 
+
 								if (IsProfile(locDoc))
 								{
 									// Check whether the profile has unique partnumber	
 									oPropSet = locDoc.PropertySets["Inventor User Defined Properties"];
 									string propertyName = "HasUniquePartNumber";
-									bool HasUniquePartNumber=false;
+									bool HasUniquePartNumber = false;
 									if (Library.HasInventorProperty(oPropSet, propertyName))
 									{
 										HasUniquePartNumber = (bool)oPropSet[propertyName].Value;
@@ -504,9 +526,9 @@ namespace AutoSpecification
 			try
 			{
 				bool ok = false;
-					PropertySet oPropSet = part.PropertySets["Inventor User Defined Properties"];
-					string propertyName = "ProfileType";
-					if (Library.HasInventorProperty(oPropSet, propertyName)) return true;
+				PropertySet oPropSet = part.PropertySets["Inventor User Defined Properties"];
+				string propertyName = "ProfileType";
+				if (Library.HasInventorProperty(oPropSet, propertyName)) return true;
 				return ok;
 			}
 
@@ -629,8 +651,8 @@ namespace AutoSpecification
 					//oForm.ShowDialog();
 					//if (oForm.DialogResult == System.Windows.Forms.DialogResult.OK)
 					//{
-						// Replace references
-						ReplaceReferencesMethod(oldFilePath, newFilePath);
+					// Replace references
+					ReplaceReferencesMethod(oldFilePath, newFilePath);
 					//}
 				}
 			}
@@ -651,7 +673,7 @@ namespace AutoSpecification
 
 				// Find where file was used before renaming
 				DocumentsEnumerator oDocsEnum = oDoc.ReferencingDocuments;
-				
+
 				// Save file with new name
 				oDoc.SaveAs(newFilePath, false);
 

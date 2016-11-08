@@ -3,10 +3,10 @@
   <Profiles />
   <Settings>
     <Setting Name="InventorLibraryPath" Type="System.String" Scope="User">
-      <Value Profile="(Default)">d:\Шаталов\Тестовый архив\2017 Библиотека компонентов INVENTOR 2016\</Value>
+      <Value Profile="(Default)">m:\KB\Библиотека компонентов INVENTOR 2016\</Value>
     </Setting>
     <Setting Name="InventorAlbumPath" Type="System.String" Scope="User">
-      <Value Profile="(Default)">d:\Шаталов\Тестовый архив\Альбом конструктивных решений INVENTOR\</Value>
+      <Value Profile="(Default)">m:\KB\Альбом конструктивных решений INVENTOR\</Value>
     </Setting>
     <Setting Name="Author" Type="System.String" Scope="User">
       <Value Profile="(Default)" />

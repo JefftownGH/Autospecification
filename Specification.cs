@@ -14,10 +14,11 @@ using Excel = Microsoft.Office.Interop.Excel;
 using ExcelClass = InventorPlugins.Excel_Class;
 using Library = InventorPlugins.OftenLibrary;
 using Shell32;
+using System.Threading;
 
 namespace AutoSpecification
 {
-	public enum SPTypes { СП, ТМ, ТС, ТП, Корпус}
+	public enum SPTypes { СП, ТМ, ТС, ТП, Корпус }
 
 	public class Specification : INotifyPropertyChanged
 	{
@@ -25,31 +26,63 @@ namespace AutoSpecification
 		// Default constructor
 		public Specification(Inventor.Application ThisApplication, Component inputComponent)
 		{
-
 			try
 			{
 				mainComponent = inputComponent;
+				casingComponent = new Component(inventorApp);
 				inventorApp = ThisApplication;
 				projectDirectory = System.IO.Path.GetDirectoryName(inventorApp.DesignProjectManager.ActiveDesignProject.FullFileName);
-				Quantity = mainComponent.Quantity;
+				// Get main assembly
+				mainAssembly = (AssemblyDocument)inventorApp.Documents.Open(mainComponent.FullFileName);
+				SearchComponents();
+				//Quantity = mainComponent.Quantity;
 				if (!SearchVPFile())
 				{
 					System.Windows.MessageBox.Show("Создайте ярлык с ссылкой на ведомость покупных в папке с проектом.", "Отсутствует ярлык (ВП)", MessageBoxButton.OK);
 				}
 				SearchSPFile();
+				Thread myThread = new Thread(new ThreadStart(SearchCasing));
 			}
 			catch (Exception ex)
 			{
 				System.Windows.MessageBox.Show(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, MessageBoxButton.OK);
 			}
 		}
+
+		#region Properties
 		// Properties
 		public string FileName { get; set; }
 		public string FilePath { get; set; }
 		public string VPfilePath { get; set; }
-		private string author;
+		public string projectDirectory { get; set; }
+		private Inventor.Application inventorApp;
+		private AssemblyDocument mainAssembly;
+		private AssemblyDocument casingAssembly;
 		private DataTable table;
 		private DataTable VPtable;
+		private Component mainComponent { get; set; }
+		public Component MainComponent
+		{
+			get { return this.mainComponent; }
+			set
+			{
+				this.mainComponent = value;
+				// Call OnPropertyChanged whevener the property is updated
+				OnPropertyChanged("CasingComponent");
+			}
+		}
+		private Component casingComponent { get; set; }
+		public Component CasingComponent
+		{
+			get { return this.casingComponent; }
+			set
+			{
+				this.casingComponent = value;
+				// Call OnPropertyChanged whevener the property is updated
+				OnPropertyChanged("CasingComponent");
+			}
+		}
+		private string author;
 		public string Author
 		{
 			get { return this.author; }
@@ -75,7 +108,6 @@ namespace AutoSpecification
 				OnPropertyChanged("CheckedBy");
 			}
 		}
-
 		private string quantity;
 		public string Quantity
 		{
@@ -87,13 +119,224 @@ namespace AutoSpecification
 				OnPropertyChanged("Quantity");
 			}
 		}
-
-		private string projectDirectory;
-		private Inventor.Application inventorApp;
-		private Component mainComponent;
+		#endregion
 
 		// Private Methods
+		#region Search main components (ТМ, ТС, ТП, Casing etc.)
+		private void SearchComponents()
+		{
+			try
+			{
+				foreach (ComponentOccurrence occurrence in mainAssembly.ComponentDefinition.Occurrences)
+				{
+					if (occurrence.DefinitionDocumentType == DocumentTypeEnum.kAssemblyDocumentObject)
+					{
+						AssemblyDocument assembly = (AssemblyDocument)occurrence.Definition.Document;
+						Component component = GetAssemblyComponent(assembly);
+						mainComponent.Components.Add(component);
+					}
+				}
 
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, MessageBoxButton.OK);
+			}
+		}
+
+		private Component GetAssemblyComponent(AssemblyDocument assembly)
+		{
+			try
+			{
+				Component component = new Component(inventorApp);
+				// Get file info
+				component.FullFileName = assembly.FullFileName;
+				PropertySet oPropSet = assembly.PropertySets["Design Tracking Properties"];
+				component.PartNumber = oPropSet["Part Number"].Value.ToString();
+				component.Description = oPropSet["Description"].Value.ToString();
+				oPropSet = assembly.PropertySets["Inventor User Defined Properties"];
+				string propertyName = "Заводской номер";
+				if (Library.HasInventorProperty(oPropSet, propertyName))
+				{
+					component.FactoryNumber = oPropSet[propertyName].Value.ToString();
+				}
+				component.ComponentType = ComponentTypes.Assembly;
+				// Define assembly type				
+				string fileName = Path.GetFileName(component.FullFileName);
+				// Get property "Тип сборки"
+				string assemblyType = "Common";
+				propertyName = "Тип сборки";
+				if (Library.HasInventorProperty(oPropSet, propertyName))
+				{
+					assemblyType = oPropSet[propertyName].Value.ToString();
+				}
+				switch (assemblyType)
+				{
+					case "Common":
+						component.AssemblyType = AssemblyTypes.Common;
+						break;
+					case "Casing":
+						component.AssemblyType = AssemblyTypes.Casing;
+						casingComponent = component;
+						SearchCasingComponents();
+						break;
+					case "ТМ":
+						component.AssemblyType = AssemblyTypes.ТМ;
+						break;
+					case "ТС":
+						component.AssemblyType = AssemblyTypes.ТС;
+						break;
+					case "ТП":
+						component.AssemblyType = AssemblyTypes.ТП;
+						break;
+					default:
+						break;
+				}
+
+				return component;
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, MessageBoxButton.OK);
+				return null;
+			}
+		}
+
+		private void SearchCasingComponents()
+		{
+			try
+			{
+				casingAssembly = (AssemblyDocument)inventorApp.Documents.Open(casingComponent.FullFileName, false);
+				foreach (ComponentOccurrence occurrence in casingAssembly.ComponentDefinition.Occurrences)
+				{
+					AddCasingComponentRecursive(occurrence, casingComponent);
+				}
+
+				casingAssembly.Close();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, MessageBoxButton.OK);
+			}
+		}
+
+		private void AddCasingComponentRecursive(ComponentOccurrence occurrence, Component component)
+		{
+			try
+			{
+				if (occurrence.DefinitionDocumentType == DocumentTypeEnum.kAssemblyDocumentObject)
+				{
+					AssemblyDocument assembly = (AssemblyDocument)occurrence.Definition.Document;
+					Component subComponent = GetCasingComponent(assembly);
+					// check whether the component exists
+					bool hasComponent = false;
+					foreach (Component componentLoc in component.Components)
+					{
+						if (componentLoc.FullFileName == subComponent.FullFileName)
+						{
+							hasComponent = true;
+						}
+					}
+					if (!hasComponent)
+					{
+						component.Components.Add(subComponent);
+					}
+					// Recursive call
+					//foreach (ComponentOccurrence subOccurrence in assembly.ComponentDefinition.Occurrences)
+					//{
+					//	AddCasingComponentRecursive(subOccurrence, subComponent);
+					//}
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, MessageBoxButton.OK);
+			}
+		}
+
+		private Component GetCasingComponent(AssemblyDocument assembly)
+		{
+			try
+			{
+				Component component = new Component(inventorApp);
+				// Get file info
+				component.FullFileName = assembly.FullFileName;
+				PropertySet oPropSet = assembly.PropertySets["Design Tracking Properties"];
+				component.PartNumber = oPropSet["Part Number"].Value.ToString();
+				component.Description = oPropSet["Description"].Value.ToString();
+				oPropSet = assembly.PropertySets["Inventor User Defined Properties"];
+				component.FactoryNumber = oPropSet["Заводской номер"].Value.ToString();
+				component.ComponentType = ComponentTypes.Assembly;
+				// Define assembly type				
+				string fileName = Path.GetFileName(component.FullFileName);
+				component.CasingType = CasingTypes.Common;
+				if (fileName.IndexOf("Комплект ЛСП") >= 0)
+				{
+					component.CasingType = CasingTypes.ЛСП;
+				}
+				if (fileName.IndexOf("Рама") >= 0)
+				{
+					component.CasingType = CasingTypes.Frame;
+				}
+
+				// Get property "Тип сборки"
+				string casingType = "Common";
+				string propertyName = "Тип сборки";
+				if (Library.HasInventorProperty(oPropSet, propertyName))
+				{
+					casingType = oPropSet[propertyName].Value.ToString();
+				}
+				switch (casingType)
+				{
+					case "Common":
+						component.CasingType = CasingTypes.Common;
+						break;
+					case "ЛСП":
+						component.CasingType = CasingTypes.ЛСП;
+						break;
+					case "F":
+						component.CasingType = CasingTypes.Frame;
+						break;
+					default:
+						break;
+				}
+
+				return component;
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, MessageBoxButton.OK);
+				return null;
+			}
+		}
+
+		public void CheckCasing()
+		{
+			try
+			{
+				foreach (Component component in mainComponent.Components)
+				{
+					if (component.AssemblyType == AssemblyTypes.Casing)
+					{
+						CasingComponent = component;
+						//SearchCasingComponents();
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, MessageBoxButton.OK);
+			}
+		}
+
+		private void SearchCasing()
+		{
+
+
+		}
+		#endregion
+
+		#region Search purchased roll and specifitation files
 		private bool SearchVPFile()
 		{
 			try
@@ -163,7 +406,7 @@ namespace AutoSpecification
 				System.Windows.MessageBox.Show(ex.Message, System.Reflection.MethodBase.GetCurrentMethod().Name, MessageBoxButton.OK);
 			}
 		}
-
+		#endregion
 
 		// Declare event
 		public event PropertyChangedEventHandler PropertyChanged = delegate { };
@@ -175,14 +418,18 @@ namespace AutoSpecification
 			{
 				handler(this, new PropertyChangedEventArgs(name));
 			}
-			if (name == "Quantity") 
+			//if (name == "Quantity") 
+			//{
+			//	// Save quantity to model
+			//	AssemblyDocument assembly = (AssemblyDocument)inventorApp.Documents.Open(mainComponent.FullFileName);
+			//	PropertySet oPropSet = assembly.PropertySets["Inventor User Defined Properties"];
+			//	// Set quantity of units
+			//	string propertyName = "Количество агрегатов";
+			//	Library.ChangeInventorProperty(oPropSet, propertyName, this.Quantity);
+			//}
+			if (name == "CasingComponent")
 			{
-				// Save quantity to model
-				AssemblyDocument assembly = (AssemblyDocument)inventorApp.Documents.Open(mainComponent.FullFileName);
-				PropertySet oPropSet = assembly.PropertySets["Inventor User Defined Properties"];
-				// Set quantity of units
-				string propertyName = "Количество агрегатов";
-				Library.ChangeInventorProperty(oPropSet, propertyName, this.Quantity);
+				SearchCasingComponents();
 			}
 		}
 
@@ -202,15 +449,15 @@ namespace AutoSpecification
 					}
 					if (component.AssemblyType == AssemblyTypes.ТП)
 					{
-						isComponentsExist[2]=true;
+						isComponentsExist[2] = true;
 					}
 					if (component.AssemblyType == AssemblyTypes.ТС)
 					{
-						isComponentsExist[1]=true;
+						isComponentsExist[1] = true;
 					}
-					if (component.AssemblyType==AssemblyTypes.ТМ)
+					if (component.AssemblyType == AssemblyTypes.ТМ)
 					{
-						isComponentsExist[0]=true;
+						isComponentsExist[0] = true;
 					}
 				}
 				// Create SP for casing
@@ -235,7 +482,7 @@ namespace AutoSpecification
 				}
 				// Create main SP
 				Create(SPTypes.СП);
-		
+
 			}
 			catch (Exception ex)
 			{
@@ -718,15 +965,26 @@ namespace AutoSpecification
 				// Search for main components
 				DataTable mainTable = null;
 				DataTable commonTable = null;
-				if ((SPType == SPTypes.СП)||(SPType == SPTypes.Корпус))
+				if ((SPType == SPTypes.СП) || (SPType == SPTypes.Корпус))
 				{
 					// Copy table
 					commonTable = table.Copy();
 					mainTable = table.Copy();
+					// Eliminate tail of factorynumbers
+					int defisIndex = mainComponent.FactoryNumber.ToString().IndexOf("-");
+					string factoryNumberClean;
+					if (defisIndex > 0)
+					{
+						factoryNumberClean = mainComponent.FactoryNumber.ToString().Substring(0, defisIndex);
+					}
+					else
+					{
+						factoryNumberClean = mainComponent.FactoryNumber.ToString();
+					}
 					for (int i = table.Rows.Count - 1; i >= 0; i--)
 					{
 						string partNumber = table.Rows[i]["PartNumber"].ToString();
-						if (partNumber.IndexOf(mainComponent.FactoryNumber) > 0)
+						if (partNumber.IndexOf(factoryNumberClean) > 0)
 						{
 							commonTable.Rows.RemoveAt(i);
 						}

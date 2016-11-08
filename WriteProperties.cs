@@ -22,12 +22,12 @@ namespace AutoSpecification
 		private string projectDirectory;
 		private List<string> subDirectories = new List<string>();
 		// Constructors
-		public WriteProperties(Inventor.Application ThisApplication, AssemblyDocument inputAssembly, Component inputComponent, string inputDirectory)
+		public WriteProperties(Inventor.Application ThisApplication, Component inputComponent, string inputDirectory)
 		{
 			 
 			inventorApp = ThisApplication;
-			mainAssembly = inputAssembly;
 			mainComponent = inputComponent;
+			mainAssembly = (AssemblyDocument)inventorApp.Documents.Open(mainComponent.FullFileName, false);
 			projectDirectory = inputDirectory;
 			try
 			{
@@ -43,7 +43,6 @@ namespace AutoSpecification
 				IterateAssemblyRecursive(mainAssembly.ComponentDefinition.Occurrences);
 				// Replace referencies for main components (ТМ,ТС,ТП, Casing, Frame)
 				ReplaceMainReferencies();
-				
 				mainAssembly.Save2();
 			}
 			catch (Exception ex)

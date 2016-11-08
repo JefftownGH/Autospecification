@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.ComponentModel;
+using Library = InventorPlugins.OftenLibrary;
+using Inventor;
 
 namespace AutoSpecification
 {
@@ -16,12 +18,13 @@ namespace AutoSpecification
 	public class Component : INotifyPropertyChanged
 	{
 		// Default constructor
-		public Component()
+		public Component(Inventor.Application ThisApplication)
 		{
-
+			inventorApp = ThisApplication;
 		}
 
 		// Properties
+		private Inventor.Application inventorApp;
 		private string partNumber;
 		public string PartNumber
 		{
@@ -72,9 +75,31 @@ namespace AutoSpecification
 				components = value;
 			}
 		}
-		public AssemblyTypes AssemblyType { get; set; }
+		private AssemblyTypes assemblyType;
+		public AssemblyTypes AssemblyType
+		{
+			get { return this.assemblyType; }
+			set
+			{
+				this.assemblyType = value;
+				
+				// Call OnPropertyChanged whevener the property is updated
+				OnPropertyChanged("AssemblyType");
+			}
+		}
+		private CasingTypes casingType;
+		public CasingTypes CasingType
+		{
+			get { return this.casingType; }
+			set
+			{
+				this.casingType = value;
+
+				// Call OnPropertyChanged whevener the property is updated
+				OnPropertyChanged("CasingType");
+			}
+		}
 		public ComponentTypes ComponentType { get; set; }
-		public CasingTypes CasingType { get; set; }
 		// Declare event
 		public event PropertyChangedEventHandler PropertyChanged = delegate { };
 
@@ -86,6 +111,24 @@ namespace AutoSpecification
 			if (handler != null)
 			{
 				handler(this, new PropertyChangedEventArgs(name));
+			}
+			if ((name=="AssemblyType")||(name=="CasingType"))
+			{
+				// Change inventor property
+				Document document = inventorApp.Documents.Open(this.FullFileName, false);
+				PropertySet oPropSet = document.PropertySets["Inventor User Defined Properties"];
+				string propertyName = "Тип сборки";
+				switch (name)
+				{
+					case "AssemblyType":
+						Library.ChangeInventorProperty(oPropSet, propertyName, this.assemblyType.ToString());
+						break;
+					case "CasingType":
+						Library.ChangeInventorProperty(oPropSet, propertyName, this.CasingType.ToString());
+						break;
+					default:
+						break;
+				}
 			}
 		}
 	}
